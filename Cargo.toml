@@ -1,0 +1,15 @@
+[package]
+name = "simsync"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+anyhow = "1.0.86"
+chrono = "0.4.38"
+env_logger = "0.11.3"
+html_parser = "0.7.0"
+log = "0.4.21"
+reqwest = "0.12.5"
+serde = { version = "1.0.203", features = ["derive"] }
+serde_json = "1.0.117"
+tokio = { version = "1.38.0", features = ["full"] }
