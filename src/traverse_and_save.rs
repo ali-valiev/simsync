@@ -16,30 +16,23 @@ pub fn traverse_and_save(data: &str) -> Result<usize> {
     {
         dbg!(&files_array);
         for file in files_array {
-            dbg!(&file["children"][0]["children"][0]["as"]);
-            // if let (name, path) = (
-                // file["children"][0]["children"][0]["as"].as_str().unwrap(),
-                // file["children"][0]["attributes"]["href"].as_str().unwrap(),
-            // ) {
-                // files.push(File::new(name.to_string(), path.to_string()));
-            // }
+            if let (Some(name), Some(path)) = (
+                &file["children"][0]["attributes"]["href"].as_str(),
+                &file["children"][0]["children"][0].as_str(),
+            ) {
+                files.push(File::new(
+                    name.trim_matches('"').to_string(),
+                    path.trim_matches('"').to_string(),
+                ));
+            }
         }
     }
 
-    dbg!(&files);
-
     let date: DateTime<Utc> = Utc::now();
     let file_count = files.len();
-    let output = Output::new(date.to_string(), files, file_count);
+    let output = Output::new(date.to_string(), file_count, files);
     let output_json = serde_json::to_string_pretty(&output)?;
     fs::write("files.json", output_json)?;
-    // let json_to_write = format!(
-    //     r#"{{ "lastSynced": "{date}", "files": [{data}]}}"#,
-    //     date = date.to_rfc3339(),
-    //     data = file_vec.join(", ")
-    // );
-    //
-    // fs::write("files.json", json_to_write)?;
 
     Ok(file_count)
 }
