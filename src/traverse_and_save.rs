@@ -14,16 +14,17 @@ pub fn traverse_and_save(data: &str) -> Result<usize> {
     if let Some(files_array) =
         data["children"][0]["children"][1]["children"][2]["children"].as_array()
     {
-        dbg!(&files_array);
         for file in files_array {
-            if let (Some(name), Some(path)) = (
+            if let (Some(path), Some(name)) = (
                 &file["children"][0]["attributes"]["href"].as_str(),
                 &file["children"][0]["children"][0].as_str(),
             ) {
-                files.push(File::new(
-                    name.trim_matches('"').to_string(),
-                    path.trim_matches('"').to_string(),
-                ));
+                if !name.ends_with("/") && !path.ends_with("/") {
+                    files.push(File::new(
+                        path.trim_matches('"').to_string(),
+                        name.trim_matches('"').to_string(),
+                    ));
+                }
             }
         }
     }

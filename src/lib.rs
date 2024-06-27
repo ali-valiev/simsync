@@ -1,9 +1,11 @@
+mod download;
 mod fetch;
 mod parse;
 mod traverse_and_save;
 mod types;
 
 use anyhow::Result;
+use download::download;
 use fetch::get_remote_html;
 use parse::parse_to_json;
 use traverse_and_save::traverse_and_save;
@@ -56,6 +58,11 @@ pub async fn run(host: &str, port: u16) -> Result<()> {
             error!("Could not traverse adn save files: {e}");
         }
     };
+
+    match download("files.json", host, port).await {
+        Ok(_) => info!("Succesfully synced all files from {host}:{port}"),
+        Err(e) => error!("Cpuld not sync all files: {e}"),
+    }
 
     Ok(())
 }

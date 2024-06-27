@@ -7,8 +7,14 @@ pub struct File {
 }
 
 impl File {
-    pub fn new(name: String, path: String) -> Self {
-        Self { name, path }
+    pub fn new(path: String, name: String) -> Self {
+        Self { path, name }
+    }
+    pub fn get_path(&self) -> &str {
+        &self.path
+    }
+    pub fn get_name(&self) -> &str {
+        &self.name
     }
 }
 
@@ -26,5 +32,9 @@ impl Output {
             files,
             file_count,
         }
+    }
+
+    pub fn get_files(&self) -> &Vec<crate::types::File> {
+        &self.files
     }
 }
