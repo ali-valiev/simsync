@@ -6,6 +6,15 @@ pub struct File {
     path: String,
 }
 
+impl Clone for File {
+    fn clone(&self) -> Self {
+        Self {
+            name: self.name.clone(),
+            path: self.path.clone(),
+        }
+    }
+}
+
 impl File {
     pub fn new(path: String, name: String) -> Self {
         Self { path, name }
@@ -34,7 +43,7 @@ impl Output {
         }
     }
 
-    pub fn get_files(&self) -> &Vec<crate::types::File> {
-        &self.files
+    pub fn get_files(self) -> Vec<crate::types::File> {
+        self.files
     }
 }

@@ -6,7 +6,7 @@ use chrono::{DateTime, Utc};
 use serde_json::Value;
 use std::fs;
 
-pub fn traverse_and_save(data: &str) -> Result<usize> {
+pub fn traverse_and_save(data: &str, dir: &str) -> Result<usize> {
     let data: Value = serde_json::from_str(data).expect("error while parsing the json");
 
     let mut files: Vec<File> = Vec::new();
@@ -33,7 +33,8 @@ pub fn traverse_and_save(data: &str) -> Result<usize> {
     let file_count = files.len();
     let output = Output::new(date.to_string(), file_count, files);
     let output_json = serde_json::to_string_pretty(&output)?;
-    fs::write("files.json", output_json)?;
+    let dir = format!("{dir}files.json");
+    fs::write(&dir, output_json)?;
 
     Ok(file_count)
 }
