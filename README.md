@@ -33,3 +33,6 @@ You can run with "help" flag to get more info
 
 
 Most of the code logic is explained in the comments
+
+
+Feature plans are to add some more helpfull output, and implement multithreading
