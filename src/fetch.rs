@@ -1,5 +1,6 @@
 use reqwest::Client;
 
+// Simply sending get request to the python server to retrive the html file
 pub async fn get_remote_html(host: &str, port: u16) -> Result<reqwest::Response, reqwest::Error> {
     let url = format!("http://{host}:{port}");
     let client = Client::builder()

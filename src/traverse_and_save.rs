@@ -6,6 +6,13 @@ use chrono::{DateTime, Utc};
 use serde_json::Value;
 use std::fs;
 
+// Most of the logic of traversing is based on structure of the html file parsed into json
+// file names and paths of the remote files are nested within the json, so if you want to take a
+// look at it, feel free to review structure of the html parsed to json
+//
+// all the data that has to be saved in the index file are serialized from the types::Output struct
+//
+// i've also placed some usefull info like last sync time in the index file
 pub fn traverse_and_save(file_index_name: &str, data: &str, dir: &str) -> Result<usize> {
     let data: Value = serde_json::from_str(data).expect("error while parsing the json");
 

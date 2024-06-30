@@ -6,12 +6,10 @@ mod traverse_and_save;
 mod types;
 
 use fetch::get_remote_html;
-use get_file_index::{get_file_index, get_old_file_index};
+use get_file_index::{get_current_file_index, get_new_file_index};
 use parse::parse_to_json;
 use sync::sync;
 use traverse_and_save::traverse_and_save;
-
-use crate::types::File;
 
 use log::{error, info};
 use std::env;
@@ -48,10 +46,15 @@ pub async fn run() -> Result<(), Box<dyn Error>> {
         .filter_level(log::LevelFilter::Debug)
         .init();
 
-    let old_files: Option<Vec<File>>;
-    match get_old_file_index(file_index_name, dir) {
+    // Reading the local directory to check if there are any files
+    // There could be all the files that are in the remote directory that has to be synchronized
+    // In that case no synchronization is needeed
+    // But sometimes there are files in local directory that are not in remote directory, in that
+    // case that file has to be removed becasue SimSync is OneWay synchronization tool
+    let current_files: Option<Vec<String>>;
+    match get_current_file_index(dir) {
         Ok(files) => {
-            old_files = files;
+            current_files = files;
         }
         Err(e) => {
             error!("Could not get old file index: {e}");
@@ -59,6 +62,8 @@ pub async fn run() -> Result<(), Box<dyn Error>> {
         }
     }
 
+    // Response is an html file that remote python server provides
+    // it is in its raw form
     let res = match get_remote_html(host, port).await {
         Ok(response) => {
             info!("Got the response!");
@@ -70,6 +75,7 @@ pub async fn run() -> Result<(), Box<dyn Error>> {
         }
     };
 
+    //To get the html data out of the response we need to get its text()
     let res_text = match res.text().await {
         Ok(text) => {
             info!("Got the data out from response!");
@@ -81,6 +87,8 @@ pub async fn run() -> Result<(), Box<dyn Error>> {
         }
     };
 
+    //Then in order to parse it effectively we need to convert it to json
+    //I choose json because of mine familiarity with it and it fitted the needs perfectly
     let json = match parse_to_json(&res_text) {
         Ok(json) => {
             info!("Successfully parsed HTML data to Json");
@@ -92,6 +100,8 @@ pub async fn run() -> Result<(), Box<dyn Error>> {
         }
     };
 
+    // now that the all data is on our hands wee need to parse it
+    // after proper parsing we need to save it in order to have access to the files data right away
     match traverse_and_save(&file_index_name, &json, &dir) {
         Ok(file_count) => {
             info!("Succesfully traversed {file_count} files and saved in {file_index_name}");
@@ -102,7 +112,8 @@ pub async fn run() -> Result<(), Box<dyn Error>> {
         }
     };
 
-    let file_index = match get_file_index(file_index_name, dir) {
+    // After parsing and saving the file index we need to read it from the index file
+    let file_index = match get_new_file_index(file_index_name, dir) {
         Ok(files) => files,
         Err(e) => {
             error!("Could not get new file index: {e}");
@@ -110,9 +121,12 @@ pub async fn run() -> Result<(), Box<dyn Error>> {
         }
     };
 
-    match sync(old_files, file_index, host.to_string(), port, dir).await {
-        Ok(_) => {
-            info!("Succesfully synced all files from {host}:{port}")
+    // last step is to check the synchronization
+    // we pass current file index, and the up to date file index that we just got from the remote
+    // server to the sync() function for it to handle all the files, local and remote
+    match sync(current_files, file_index, host.to_string(), port, dir).await {
+        Ok((file_count, time_elapsed)) => {
+            info!("Succesfully synced {file_count} files from {host}:{port} in {time_elapsed}");
         }
         Err(e) => {
             error!("Could not sync files: {e}");
